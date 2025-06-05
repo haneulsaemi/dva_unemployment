@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>한국 시도별 실업자 수</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: sans-serif; }
+    .tooltip {
+      position: absolute;
+      background: white;
+      border: 1px solid #aaa;
+      padding: 5px;
+      pointer-events: none;
+      font-size: 12px;
+      opacity: 0;
+    }
+    svg path {
+      stroke: #fff;
+      stroke-width: 0.5;
+      cursor: pointer;
+    }
+    circle {
+      fill: rgba(255, 0, 0, 0.6);
+      stroke: #900;
+      stroke-width: 1px;
+    }
+  </style>
+</head>
+<body>
+  <!-- <h2>2025년 4월 기준 시도별 실업자 수</h2> -->
+  <div id="map"></div>
+  <div class="tooltip"></div>
+  <script src="unemployMap.js"></script>
+</body>
+</html>

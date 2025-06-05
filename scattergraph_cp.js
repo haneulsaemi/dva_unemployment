@@ -7,8 +7,6 @@ let ages = [];
 let gender = ["계", "남자", "여자"];
 let cp = [];
 
-let mode = "CPI";
-
 let sel_age = 0;
 let sel_gender = 0;
 
@@ -26,7 +24,6 @@ function setup() {
     createCanvas(1000, 750);
     setUnemploymentDataList();
     setConsumerDataList();
-    setEcosenDataList();
 
     sel_g = createSelect();
     gender.forEach(g => sel_g.option(g));
@@ -41,15 +38,6 @@ function setup() {
     sel_a.position(150, height + 10);
     sel_a.changed(() => {
         sel_age = ages.indexOf(sel_a.value());
-        updateGraphData();
-    });
-
-    let sel_mode = createSelect();
-    sel_mode.option("CPI");
-    sel_mode.option("ECOSEN");
-    sel_mode.position(300, height + 10);
-    sel_mode.changed(() => {
-        mode = sel_mode.value();
         updateGraphData();
     });
 
@@ -76,48 +64,33 @@ function setConsumerDataList() {
     }
 }
 
-function setEcosenDataList() {
-    // "경제심리지수(원계열)" 행 전체를 가져오기
-    let row = data2.getRow(1); // 2번째 행 (인덱스 1)
-    ecosen = [];
-
-    for (let i = 1; i < row.arr.length; i++) { // i=1부터: 날짜 열
-        let val = Number(row.get(i));
-        if (!isNaN(val)) {
-            ecosen.push(val);
-        }
-    }
-
-}
-
 function updateGraphData() {
     const yData = data.getRow(sel_age + 10 * sel_gender).arr.slice(2).map(Number);
+    const cpiData = cp.slice(0, yData.length).map(Number);
     const xLabels = dates.slice(0, yData.length);
 
-    let valueData = mode === "CPI" ? cp : ecosen;
-    valueData = valueData.map(Number);
-    const minLength = Math.min(yData.length, valueData.length);
-
-    let minVal = Math.min(...valueData);
-    let maxVal = Math.max(...valueData);
+    // 정규화 대상 찾기
+    let minCPI = Math.min(...cpiData);
+    let maxCPI = Math.max(...cpiData);
     minY = Math.min(...yData);
     maxY = Math.max(...yData);
 
     points = [];
-
-    for (let i = 0; i < minLength; i++) {
-        const x = map(i, 0, minLength - 1, 100, width - 100);
+    for (let i = 0; i < yData.length; i++) {
+        const x = map(i, 0, yData.length - 1, 100, width - 100);
         const y = map(yData[i], minY, maxY, height - 100, 150);
-        const normalized = (valueData[i] - minVal) / (maxVal - minVal);
-        const size = map(normalized, 0, 1, 20, 50);
-        const col = map(normalized, 0, 1, 150, 255);
+
+        // 정규화된 CPI 값
+        let normalizedCPI = (cpiData[i] - minCPI) / (maxCPI - minCPI);
+        const size = map(normalizedCPI, 0, 1, 20, 50);
+        const col = map(normalizedCPI, 0, 1, 150, 255);
 
         points.push({
             x,
             y,
             size,
             date: xLabels[i],
-            indicator: valueData[i],
+            cpi: cpiData[i],
             unemploy: yData[i],
             color: col,
             index: i
@@ -185,11 +158,13 @@ function drawHoverTooltip() {
     if (closestPoint) {
         let p = closestPoint;
 
+        // 강조 표시
         stroke(0);
         strokeWeight(2);
         fill(255, 200, 200);
         ellipse(p.x, p.y, p.size + 4, p.size + 4);
 
+        // 툴팁 좌우 자동 조정
         let tooltipX = p.x + 12;
         if (p.x > width - 200) {
             tooltipX = p.x - 192;
@@ -203,13 +178,7 @@ function drawHoverTooltip() {
         textSize(13);
         textAlign(LEFT);
         text(`📅 날짜: ${p.date}`, tooltipX + 6, p.y - 28);
-
-        if (mode === "CPI") {
-            text(`📈 소비자물가지수: ${p.indicator.toFixed(2)}`, tooltipX + 6, p.y - 13);
-        } else {
-            text(`🧠 경제심리지수: ${p.indicator.toFixed(2)}`, tooltipX + 6, p.y - 13);
-        }
-
+        text(`📈 소비자물가지수: ${p.cpi.toFixed(2)}`, tooltipX + 6, p.y - 13);
         text(`📉 실업률: ${p.unemploy.toFixed(2)}`, tooltipX + 6, p.y + 2);
     }
 }
