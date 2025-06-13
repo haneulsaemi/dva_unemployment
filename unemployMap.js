@@ -60,12 +60,10 @@ d3.xml("south-korea.svg").then(svgData => {
       .interpolator(d3.interpolateBlues);
 
     // 연도 표시 텍스트
-    const label = container.append("text")
-      .attr("x", 20).attr("y", 40)
-      .attr("font-size", "24px").attr("fill", "#333");
+    const label = d3.select("#yearText");
 
     function update(year) {
-      label.text(`${year}년 실업자 수`);
+      label.text(`${year}년`);
 
       Object.entries(regionElements).forEach(([region, path]) => {
         const val = unemploymentByYear[year]?.[region] || 0;
@@ -73,7 +71,6 @@ d3.xml("south-korea.svg").then(svgData => {
           .attr("fill", val ? color(val) : "#ccc");
       });
 
-      // 툴팁 내용도 업데이트 (hover 중일 때)
       if (hoveredRegion) {
         const value = unemploymentByYear[year]?.[hoveredRegion] || 0;
         tooltip.html(`<strong>${hoveredRegion}</strong><br>실업자 수: ${value.toLocaleString()}`);
